@@ -7,7 +7,7 @@ export default function MainLayout() {
     <Box sx={{ minHeight: "100vh", bgcolor: "#f5f5f5" }}>
       <HeaderBar />
       <Container maxWidth="lg">
-        <Box mt={4}>
+        <Box sx={{ mt: 4 }}>
           <Outlet />
         </Box>
       </Container>
