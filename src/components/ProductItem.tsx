@@ -9,14 +9,16 @@ export default function ProductItem({ product }: Props) {
   return (
     <Card sx={{ mb: 2 }}>
       <CardContent>
-        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+        <Box sx={{ display: "flex" }}>
           <Typography variant="h6">{product.name}</Typography>
-          <Typography variant="body2">x{product.amount}</Typography>
         </Box>
 
-        <Typography variant="body2" color="text.secondary">
-          Exp: {product.expirationDate.toLocaleDateString()}
-        </Typography>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            Data ważności: {product.expirationDate.toLocaleDateString()}
+          </Typography>
+          <Typography color="primary">{`Ilość: ${product.amount}`}</Typography>
+        </Box>
       </CardContent>
     </Card>
   );

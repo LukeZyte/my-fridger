@@ -24,9 +24,33 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const data = localStorage.getItem(STORAGE_KEY);
-    if (data) {
-      const parsed = JSON.parse(data);
+    if (!data) return;
 
+    const parsed = JSON.parse(data);
+
+    if (parsed.length === 0) {
+      const sampleProducts: Product[] = [
+        {
+          id: "1",
+          name: "Mleko",
+          amount: 1,
+          expirationDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        },
+        {
+          id: "2",
+          name: "Chleb",
+          amount: 2,
+          expirationDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        },
+        {
+          id: "3",
+          name: "Jajka",
+          amount: 12,
+          expirationDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        },
+      ];
+      setProducts(sampleProducts);
+    } else {
       const withDates = parsed.map((p: any) => ({
         ...p,
         expirationDate: new Date(p.expirationDate),
