@@ -23,6 +23,16 @@ const formatDateForInput = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
+const parseDateInputAsLocalDate = (value: string) => {
+  const [year, month, day] = value.split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  return new Date(year, month - 1, day);
+};
+
 export default function ProductForm({
   initialProduct,
   onSubmit,
@@ -55,8 +65,11 @@ export default function ProductForm({
     if (formData.amount > 0 && !formData.expirationDate) {
       newErrors.expirationDate = "Data ważności jest wymagana";
     } else if (formData.amount > 0 && formData.expirationDate) {
-      const selectedDate = new Date(formData.expirationDate);
-      if (selectedDate < new Date()) {
+      const selectedDate = parseDateInputAsLocalDate(formData.expirationDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (!selectedDate || selectedDate <= today) {
         newErrors.expirationDate = "Data ważności musi być w przyszłości";
       }
     }
@@ -72,6 +85,10 @@ export default function ProductForm({
       return;
     }
 
+    const parsedExpirationDate = formData.expirationDate
+      ? parseDateInputAsLocalDate(formData.expirationDate)
+      : null;
+
     const newProduct: Product = {
       id: initialProduct?.id || Date.now().toString(),
       name: formData.name,
@@ -79,7 +96,7 @@ export default function ProductForm({
       expirationDate:
         formData.amount === 0 && !formData.expirationDate
           ? null
-          : new Date(formData.expirationDate),
+          : parsedExpirationDate,
     };
 
     onSubmit(newProduct);
