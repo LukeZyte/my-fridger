@@ -16,6 +16,13 @@ interface ProductFormProps {
   isEditing?: boolean;
 }
 
+const formatDateForInput = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export default function ProductForm({
   initialProduct,
   onSubmit,
@@ -26,7 +33,9 @@ export default function ProductForm({
     name: initialProduct?.name || "",
     amount: initialProduct?.amount || 1,
     expirationDate: initialProduct
-      ? initialProduct.expirationDate?.toISOString().split("T")[0] || ""
+      ? initialProduct.expirationDate
+        ? formatDateForInput(initialProduct.expirationDate)
+        : ""
       : "",
   });
 
