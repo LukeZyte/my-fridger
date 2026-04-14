@@ -1,0 +1,182 @@
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useState, type FormEvent } from "react";
+import type { Product } from "../model/Product";
+
+interface ProductFormProps {
+  initialProduct?: Product;
+  onSubmit: (product: Product) => void;
+  onCancel?: () => void;
+  isEditing?: boolean;
+}
+
+const formatDateForInput = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseDateInputAsLocalDate = (value: string) => {
+  const [year, month, day] = value.split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  return new Date(year, month - 1, day);
+};
+
+export default function ProductForm({
+  initialProduct,
+  onSubmit,
+  onCancel,
+  isEditing = false,
+}: ProductFormProps) {
+  const [formData, setFormData] = useState({
+    name: initialProduct?.name || "",
+    amount: initialProduct?.amount || 1,
+    expirationDate: initialProduct
+      ? initialProduct.expirationDate
+        ? formatDateForInput(initialProduct.expirationDate)
+        : ""
+      : "",
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Nazwa produktu jest wymagana";
+    }
+
+    if (formData.amount < 0) {
+      newErrors.amount = "Ilość nie może być ujemna";
+    }
+
+    if (formData.amount > 0 && !formData.expirationDate) {
+      newErrors.expirationDate = "Data ważności jest wymagana";
+    } else if (formData.amount > 0 && formData.expirationDate) {
+      const selectedDate = parseDateInputAsLocalDate(formData.expirationDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (!selectedDate || selectedDate <= today) {
+        newErrors.expirationDate = "Data ważności musi być w przyszłości";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    const parsedExpirationDate = formData.expirationDate
+      ? parseDateInputAsLocalDate(formData.expirationDate)
+      : null;
+
+    const newProduct: Product = {
+      id: initialProduct?.id || Date.now().toString(),
+      name: formData.name,
+      amount: formData.amount,
+      expirationDate:
+        formData.amount === 0 && !formData.expirationDate
+          ? null
+          : parsedExpirationDate,
+    };
+
+    onSubmit(newProduct);
+  };
+
+  return (
+    <Card>
+      <CardContent>
+        <Typography variant="h5" sx={{ mb: 3 }}>
+          {isEditing ? "Edytuj produkt" : "Dodaj nowy produkt"}
+        </Typography>
+
+        <Box component="form" onSubmit={handleSubmit}>
+          <TextField
+            fullWidth
+            label="Nazwa produktu"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            error={!!errors.name}
+            helperText={errors.name}
+            margin="normal"
+            variant="outlined"
+          />
+
+          <TextField
+            fullWidth
+            label="Ilość"
+            type="number"
+            value={formData.amount}
+            onChange={(e) => {
+              const amount = Number.parseInt(e.target.value, 10);
+              setFormData({
+                ...formData,
+                amount: Number.isNaN(amount) ? 0 : amount,
+              });
+            }}
+            error={!!errors.amount}
+            helperText={errors.amount}
+            margin="normal"
+            variant="outlined"
+            slotProps={{ htmlInput: { min: 0 } }}
+          />
+
+          <TextField
+            fullWidth
+            label="Data ważności"
+            type="date"
+            value={formData.expirationDate}
+            onChange={(e) =>
+              setFormData({ ...formData, expirationDate: e.target.value })
+            }
+            error={!!errors.expirationDate}
+            helperText={errors.expirationDate}
+            margin="normal"
+            variant="outlined"
+            slotProps={{ inputLabel: { shrink: true } }}
+          />
+
+          <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              type="submit"
+              sx={{ flex: 1 }}
+            >
+              {isEditing ? "Zaktualizuj" : "Dodaj produkt"}
+            </Button>
+            {onCancel && (
+              <Button
+                variant="outlined"
+                color="inherit"
+                onClick={onCancel}
+                sx={{ flex: 1 }}
+              >
+                Anuluj
+              </Button>
+            )}
+          </Box>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+}
