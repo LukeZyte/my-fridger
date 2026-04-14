@@ -52,6 +52,7 @@ export default function ProductItem({ product }: Props) {
               size="small"
               color="primary"
               onClick={handleEdit}
+              aria-label={`Edytuj produkt ${product.name}`}
               title="Edytuj"
             >
               <EditIcon />
@@ -60,6 +61,7 @@ export default function ProductItem({ product }: Props) {
               size="small"
               color="error"
               onClick={handleDelete}
+              aria-label={`Usuń produkt ${product.name}`}
               title="Usuń"
             >
               <DeleteIcon />
