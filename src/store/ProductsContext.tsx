@@ -11,6 +11,7 @@ interface ProductsContextType {
   products: Product[];
   addProduct: (product: Product) => void;
   removeProduct: (id: string) => void;
+  updateProduct: (id: string, product: Product) => void;
 }
 
 const ProductsContext = createContext<ProductsContextType | undefined>(
@@ -19,46 +20,52 @@ const ProductsContext = createContext<ProductsContextType | undefined>(
 
 const STORAGE_KEY = "fridge_products";
 
-export const ProductsProvider = ({ children }: { children: ReactNode }) => {
-  const [products, setProducts] = useState<Product[]>([]);
+const sampleProducts: Product[] = [
+  {
+    id: "1",
+    name: "Mleko",
+    amount: 1,
+    expirationDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  },
+  {
+    id: "2",
+    name: "Chleb",
+    amount: 2,
+    expirationDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+  },
+  {
+    id: "3",
+    name: "Jajka",
+    amount: 12,
+    expirationDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+  },
+];
 
-  useEffect(() => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (!data) return;
+const loadProducts = (): Product[] => {
+  const data = localStorage.getItem(STORAGE_KEY);
 
+  if (!data) {
+    return sampleProducts;
+  }
+
+  try {
     const parsed = JSON.parse(data);
 
-    if (parsed.length === 0) {
-      const sampleProducts: Product[] = [
-        {
-          id: "1",
-          name: "Mleko",
-          amount: 1,
-          expirationDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        },
-        {
-          id: "2",
-          name: "Chleb",
-          amount: 2,
-          expirationDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-        },
-        {
-          id: "3",
-          name: "Jajka",
-          amount: 12,
-          expirationDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-        },
-      ];
-      setProducts(sampleProducts);
-    } else {
-      const withDates = parsed.map((p: any) => ({
-        ...p,
-        expirationDate: new Date(p.expirationDate),
-      }));
-
-      setProducts(withDates);
+    if (!Array.isArray(parsed)) {
+      return sampleProducts;
     }
-  }, []);
+
+    return parsed.map((p: Product) => ({
+      ...p,
+      expirationDate: new Date(p.expirationDate),
+    }));
+  } catch {
+    return sampleProducts;
+  }
+};
+
+export const ProductsProvider = ({ children }: { children: ReactNode }) => {
+  const [products, setProducts] = useState<Product[]>(loadProducts);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
@@ -72,8 +79,14 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
     setProducts((prev) => prev.filter((p) => p.id !== id));
   };
 
+  const updateProduct = (id: string, product: Product) => {
+    setProducts((prev) => prev.map((p) => (p.id === id ? product : p)));
+  };
+
   return (
-    <ProductsContext.Provider value={{ products, addProduct, removeProduct }}>
+    <ProductsContext.Provider
+      value={{ products, addProduct, removeProduct, updateProduct }}
+    >
       {children}
     </ProductsContext.Provider>
   );
