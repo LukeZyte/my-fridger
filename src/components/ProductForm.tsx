@@ -26,7 +26,7 @@ export default function ProductForm({
     name: initialProduct?.name || "",
     amount: initialProduct?.amount || 1,
     expirationDate: initialProduct
-      ? initialProduct.expirationDate.toISOString().split("T")[0]
+      ? initialProduct.expirationDate?.toISOString().split("T")[0] || ""
       : "",
   });
 
@@ -39,13 +39,13 @@ export default function ProductForm({
       newErrors.name = "Nazwa produktu jest wymagana";
     }
 
-    if (formData.amount < 1) {
-      newErrors.amount = "Ilość musi być większa niż 0";
+    if (formData.amount < 0) {
+      newErrors.amount = "Ilość nie może być ujemna";
     }
 
-    if (!formData.expirationDate) {
+    if (formData.amount > 0 && !formData.expirationDate) {
       newErrors.expirationDate = "Data ważności jest wymagana";
-    } else {
+    } else if (formData.amount > 0 && formData.expirationDate) {
       const selectedDate = new Date(formData.expirationDate);
       if (selectedDate < new Date()) {
         newErrors.expirationDate = "Data ważności musi być w przyszłości";
@@ -67,7 +67,10 @@ export default function ProductForm({
       id: initialProduct?.id || Date.now().toString(),
       name: formData.name,
       amount: formData.amount,
-      expirationDate: new Date(formData.expirationDate),
+      expirationDate:
+        formData.amount === 0 && !formData.expirationDate
+          ? null
+          : new Date(formData.expirationDate),
     };
 
     onSubmit(newProduct);
@@ -108,7 +111,7 @@ export default function ProductForm({
             helperText={errors.amount}
             margin="normal"
             variant="outlined"
-            slotProps={{ htmlInput: { min: 1 } }}
+            slotProps={{ htmlInput: { min: 0 } }}
           />
 
           <TextField

@@ -39,7 +39,10 @@ export default function ProductItem({ product }: Props) {
               sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 1 }}
             >
               <Typography variant="body2" color="text.secondary">
-                Data ważności: {product.expirationDate.toLocaleDateString()}
+                Data ważności:{" "}
+                {product.expirationDate
+                  ? product.expirationDate.toLocaleDateString()
+                  : "nie dotyczy"}
               </Typography>
               <Typography color="primary">{`Ilość: ${product.amount}`}</Typography>
             </Box>

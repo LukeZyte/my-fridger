@@ -57,7 +57,7 @@ const loadProducts = (): Product[] => {
 
     return parsed.map((p: Product) => ({
       ...p,
-      expirationDate: new Date(p.expirationDate),
+      expirationDate: p.expirationDate ? new Date(p.expirationDate) : null,
     }));
   } catch {
     return sampleProducts;
