@@ -12,6 +12,9 @@ interface ProductsContextType {
   addProduct: (product: Product) => void;
   removeProduct: (id: string) => void;
   updateProduct: (id: string, product: Product) => void;
+  setProductAmount: (id: string, amount: number) => void;
+  incrementProductAmount: (id: string) => void;
+  decrementProductAmount: (id: string) => void;
 }
 
 const ProductsContext = createContext<ProductsContextType | undefined>(
@@ -83,9 +86,38 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
     setProducts((prev) => prev.map((p) => (p.id === id ? product : p)));
   };
 
+  const setProductAmount = (id: string, amount: number) => {
+    const nextAmount = Math.max(0, amount);
+    setProducts((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, amount: nextAmount } : p)),
+    );
+  };
+
+  const incrementProductAmount = (id: string) => {
+    setProducts((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, amount: p.amount + 1 } : p)),
+    );
+  };
+
+  const decrementProductAmount = (id: string) => {
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, amount: Math.max(0, p.amount - 1) } : p,
+      ),
+    );
+  };
+
   return (
     <ProductsContext.Provider
-      value={{ products, addProduct, removeProduct, updateProduct }}
+      value={{
+        products,
+        addProduct,
+        removeProduct,
+        updateProduct,
+        setProductAmount,
+        incrementProductAmount,
+        decrementProductAmount,
+      }}
     >
       {children}
     </ProductsContext.Provider>

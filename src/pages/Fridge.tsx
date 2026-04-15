@@ -1,38 +1,98 @@
-import { Typography, Box } from "@mui/material";
+import { Box, Tab, Tabs, Typography } from "@mui/material";
+import { useMemo, useState } from "react";
 import { useProducts } from "../store/ProductsContext";
 import ProductItem from "../components/ProductItem";
+
+type FridgeView = "available" | "needed" | "expired";
+
 export default function Fridge() {
   const { products } = useProducts();
-  const availableProducts = products.filter((product) => product.amount > 0);
+  const [currentView, setCurrentView] = useState<FridgeView>("available");
+
+  const today = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }, []);
+
+  const availableProducts = products.filter((product) => {
+    if (product.amount === 0) {
+      return false;
+    }
+
+    if (!product.expirationDate) {
+      return true;
+    }
+
+    return product.expirationDate >= today;
+  });
+
   const neededProducts = products.filter((product) => product.amount === 0);
+  const expiredProducts = products.filter(
+    (product) =>
+      product.amount > 0 &&
+      product.expirationDate !== null &&
+      product.expirationDate < today,
+  );
+
+  const listConfig: Record<
+    FridgeView,
+    {
+      title: string;
+      emptyText: string;
+      items: typeof products;
+    }
+  > = {
+    available: {
+      title: "Produkty w lodówce",
+      emptyText: "Lista produktów w lodówce jest pusta",
+      items: availableProducts,
+    },
+    needed: {
+      title: "Do kupienia ponownie",
+      emptyText: "Brak produktów do ponownego zakupu",
+      items: neededProducts,
+    },
+    expired: {
+      title: "Produkty przeterminowane",
+      emptyText: "Brak przeterminowanych produktów",
+      items: expiredProducts,
+    },
+  };
+
+  const currentList = listConfig[currentView];
 
   return (
     <Box>
       <Typography variant="h4" sx={{ mb: 3 }}>
-        Lista produktów w lodówce
+        Moja lodówka
       </Typography>
 
-      {availableProducts.length === 0 ? (
-        <Typography color="text.secondary">
-          Lista produktów jest pusta
-        </Typography>
-      ) : (
-        availableProducts.map((product) => (
-          <ProductItem key={product.id} product={product} />
-        ))
-      )}
+      <Tabs
+        value={currentView}
+        onChange={(_, value: FridgeView) => setCurrentView(value)}
+        sx={{ mb: 3 }}
+      >
+        <Tab
+          value="available"
+          label={`W lodówce (${availableProducts.length})`}
+        />
+        <Tab value="needed" label={`Brakuje (${neededProducts.length})`} />
+        <Tab
+          value="expired"
+          label={`Przeterminowane (${expiredProducts.length})`}
+        />
+      </Tabs>
 
-      <Typography variant="h5" sx={{ mt: 5, mb: 2 }}>
-        Do kupienia ponownie
+      <Typography variant="h5" sx={{ mb: 2 }}>
+        {currentList.title}
       </Typography>
 
-      {neededProducts.length === 0 ? (
-        <Typography color="text.secondary">
-          Brak produktów do ponownego zakupu
-        </Typography>
+      {currentList.items.length === 0 ? (
+        <Typography color="text.secondary">{currentList.emptyText}</Typography>
       ) : (
-        neededProducts.map((product) => (
-          <ProductItem key={product.id} product={product} />
+        currentList.items.map((product) => (
+          <ProductItem key={product.id} product={product} listType={currentView} />
         ))
       )}
     </Box>
