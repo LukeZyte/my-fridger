@@ -15,6 +15,7 @@ interface ProductsContextType {
   setProductAmount: (id: string, amount: number) => void;
   incrementProductAmount: (id: string) => void;
   decrementProductAmount: (id: string) => void;
+  removeAllUsedProducts: () => void;
 }
 
 const ProductsContext = createContext<ProductsContextType | undefined>(
@@ -107,6 +108,10 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const removeAllUsedProducts = () => {
+    setProducts((prev) => prev.filter((p) => p.amount > 0));
+  };
+
   return (
     <ProductsContext.Provider
       value={{
@@ -117,6 +122,7 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
         setProductAmount,
         incrementProductAmount,
         decrementProductAmount,
+        removeAllUsedProducts,
       }}
     >
       {children}

@@ -2,11 +2,12 @@ import { Box, Tab, Tabs, Typography } from "@mui/material";
 import { useMemo, useState } from "react";
 import { useProducts } from "../store/ProductsContext";
 import ProductItem from "../components/ProductItem";
+import { Button } from "@mui/material";
 
 type FridgeView = "available" | "needed" | "expired";
 
 export default function Fridge() {
-  const { products } = useProducts();
+  const { products, removeAllUsedProducts } = useProducts();
   const [currentView, setCurrentView] = useState<FridgeView>("available");
 
   const today = useMemo(() => {
@@ -87,6 +88,17 @@ export default function Fridge() {
       <Typography variant="h5" sx={{ mb: 2 }}>
         {currentList.title}
       </Typography>
+
+      {currentView === "needed" && neededProducts.length > 0 && (
+        <Button
+          variant="contained"
+          color="error"
+          sx={{ mb: 2 }}
+          onClick={removeAllUsedProducts}
+        >
+          Usuń wszystkie zużyte
+        </Button>
+      )}
 
       {currentList.items.length === 0 ? (
         <Typography color="text.secondary">{currentList.emptyText}</Typography>
